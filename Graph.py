@@ -1,5 +1,4 @@
 from itertools import combinations
-from random import randint
 
 class Graph:
     def __init__(self, numberOfNodes, inputEdges):
