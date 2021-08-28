@@ -18,6 +18,17 @@ class Graph:
         self.posList = []
         self.colored = []
         self.results = []
+        if numberOfNodes and inputEdges:
+            self.nodesListCreator()
+            self.edgeListCreator()
+            self.allPossibleEdges()
+            self.maximumIndependentSet()
+            self.petrick()
+            self.graphColoring()
+            self.printResults()
+        else:
+            print("Enter the number of nodes and the edges")
+
 
     def nodesListCreator(self):
         '''
@@ -109,12 +120,3 @@ class Graph:
         print(f"Results:\nThis graph can be colored with {len(self.colored)} colors.\nThe nodes that'll be colored with the same color are: ")
         for i in range (len(self.results)):
             print("{}.{}".format(i + 1, self.results[i]))
-
-    def doAll(self):
-        self.nodesListCreator()
-        self.edgeListCreator()
-        self.allPossibleEdges()
-        self.maximumIndependentSet()
-        self.petrick()
-        self.graphColoring()
-        self.printResults()
