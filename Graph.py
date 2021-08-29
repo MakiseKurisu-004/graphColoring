@@ -1,14 +1,19 @@
-from itertools import combinations
+from itertools import combinations, permutations
+from random import randint
 
 class Graph:
-    def __init__(self, numberOfNodes, inputEdges):
+    def __init__(self, numberOfNodes, inputEdges, method = 'deterministic', typeOfResult = 'understandable'):
         '''
         \nParameters: 
         \nnumberOfNodes - it's exactly how it sounds
         \ninputEdges - the currently existing edges on your graph
+        \nmethod - 'heuristic' or 'deterministic'
+        \ntypeOfResult - only necessary for deterministic method\n
+                        'understandable', 'anyPossible', 'random', 'allPossible'
         '''
         self.numberOfNodes = numberOfNodes
         self.inputEdges = inputEdges
+        self.tor = typeOfResult
         self.nodes = []
         self.edges = []
         self.all_Possible_Edges = []
@@ -24,8 +29,12 @@ class Graph:
             self.allPossibleEdges()
             self.maximumIndependentSet()
             self.petrick()
-            self.graphColoring()
-            self.printResults()
+            if method == 'heuristic':
+                self.graphColoringHeuristic()
+                self.printResults()
+            if method == 'deterministic':
+                self.graphColoringDeterministic()
+                self.printResults()
         else:
             print("Enter the number of nodes and the edges")
 
@@ -86,7 +95,6 @@ class Graph:
             self.pos += '('
             self.posList.append([])
             for edge in self.coveringTable.values():
-                
                 if i in edge:
                     key = list(self.coveringTable.values()).index(edge)
                     self.pos += list(self.coveringTable.keys())[key]+ ' + '
@@ -94,7 +102,7 @@ class Graph:
             self.pos = self.pos[:-3]
             self.pos += ')'
     
-    def graphColoring(self):
+    def graphColoringHeuristic(self):
         '''
         Function:
         Heuristically solves graph coloring problem
@@ -109,14 +117,91 @@ class Graph:
                     color.append(i)
         self.colored = []
         [self.colored.append(x) for x in color if x not in self.colored]
-    
+
+    def graphColoringDeterministic(self):
+        paths = list(permutations(self.nodes))
+        colorLists = []
+        for path in paths:
+            tempList = self.posList.copy()
+            color = []
+            for i in path:
+                for sum in tempList:
+                    if str(i) in sum: 
+                        inx = tempList.index(sum)
+                        tempList[inx] = []
+                        color.append(i)
+            colored = []
+            [colored.append(x) for x in color if x not in colored]
+            colorLists.append(colored)
+        lenList = []
+        for lists in colorLists:
+            lenList.append(len(lists))
+        lenList = [x for x in lenList if x]
+        small = min(lenList)
+        if self.tor == 'anyPossible':
+            small = lenList.index(small)
+            self.colored = colorLists[small]
+        else:
+            indices = []
+            for i in range(len(lenList)):
+                if lenList[i] == small:
+                    indices.append(i)
+            minColor = []
+            for i in indices:
+                minColor.append(colorLists[i])   
+            self.colored = minColor
+
     def printResults(self):
         '''
         Function:
         Prints the results of the function
         '''
-        for i in self.colored:
-            self.results.append(self.coveringTable[str(i)])
-        print(f"Results:\nThis graph can be colored with {len(self.colored)} colors.\nThe nodes that'll be colored with the same color are: ")
-        for i in range (len(self.results)):
-            print("{}.{}".format(i + 1, self.results[i]))
+        def ifList(testList):
+            for i in testList:
+                if isinstance(i, list) == True:
+                    return True
+            return False
+    
+        if ifList(self.colored) == True:
+            if self.tor == 'random':
+                inx = randint(0,len(self.colored))
+                for i in self.colored[inx]:
+                    self.results.append(self.coveringTable[str(i)])
+                print(f"Results:\nThis graph can be colored with {len(self.colored)} colors.\nThe nodes that'll be colored with the same color are: ")
+                for i in range (len(self.results)):
+                    print("{}.{}".format(i + 1, self.results[i]))
+            elif self.tor == 'allPossible':
+                for j in self.colored:
+                    for i in j:
+                        self.results.append(self.coveringTable[str(i)])
+                    print(f"Results:\nThis graph can be colored with {len(self.colored)} colors.\nThe nodes that'll be colored with the same color are: ")
+                    for i in range (len(self.results)):
+                        print("{}.{}".format(i + 1, self.results[i]))
+            elif self.tor == 'understandable':
+                resultsList = []
+                betterResultsList = []
+                for color1 in self.colored:
+                    for i in color1:
+                        resultsList.append(self.coveringTable[str(i)])
+                print('Calculating...')
+                for color2 in resultsList:
+                    for color1 in resultsList:
+                        if not any(item in color1 for item in color2):
+                            betterResultsList.append(color1)
+                            betterResultsList.append(color2)
+                brl = set(tuple(x) for x in betterResultsList)
+                bestResultsList = [list(x) for x in brl]
+                inx = randint(0,len(bestResultsList))
+                for i in bestResultsList[inx]:
+                    self.results.append(self.coveringTable[str(i)])
+                print(f"Results:\nThis graph can be colored with {len(self.colored)} colors.\nThe nodes that'll be colored with the same color are: ")
+                for i in range (len(self.results)):
+                    print("{}.{}".format(i + 1, self.results[i]))
+
+
+        if ifList(self.colored) == False:
+            for i in self.colored:
+                self.results.append(self.coveringTable[str(i)])
+            print(f"Results:\nThis graph can be colored with {len(self.colored)} colors.\nThe nodes that'll be colored with the same color are: ")
+            for i in range(len(self.results)):
+                print("{}.{}".format(i + 1, self.results[i]))
